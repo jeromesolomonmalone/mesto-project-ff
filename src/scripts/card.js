@@ -1,8 +1,7 @@
-import { openPopup } from "./modal";
-import { cardTemplate } from ".";
+const cardTemplate = document.querySelector("#card-template").content;
 
 // @todo: Функция создания карточки
-export function addCard(item, deleteCard, cardLikeButton) {
+export function addCard(item, deleteCard, cardLikeButton, showPopup) {
   const cardElement = cardTemplate
     .querySelector(".places__item")
     .cloneNode(true);
@@ -13,8 +12,8 @@ export function addCard(item, deleteCard, cardLikeButton) {
   deleteButton.addEventListener("click", deleteCard);
 
   const cardImage = cardElement.querySelector(".card__image");
-  cardImage.addEventListener("click", function () {
-    imagePopup(item);
+  cardImage.addEventListener("click", function(){
+     showPopup(item)
   });
 
   cardElement
@@ -27,16 +26,6 @@ export function addCard(item, deleteCard, cardLikeButton) {
 // @todo: Функция удаления карточки
 export function deleteCard(evt) {
   evt.target.closest(".places__item").remove();
-}
-
-// Функция с константой попапа карточек с изображениями и привязка к ним данных из
-//темплейта и вызов функции открытии попапа
-export function imagePopup(item) {
-  const popupTypeImage = document.querySelector(".popup_type_image");
-  popupTypeImage.querySelector(".popup__image").src = item.link;
-  popupTypeImage.querySelector(".popup__image").alt = item.name;
-  popupTypeImage.querySelector(".popup__caption").textContent = item.name;
-  openPopup(popupTypeImage);
 }
 
 //Функция добавления класса активного лайка

@@ -1,31 +1,31 @@
 import "../pages/index.css";
 import { initialCards } from "./cards.js";
 import { addCard, deleteCard, cardLikeButton } from "./card.js";
-import { openPopup, closePopup, closeOverlay } from "./modal.js";
+import { openPopup, closePopup, addCloseOverlayListener } from "./modal.js";
 
 // @todo: DOM узлы
-export const cardTemplate = document.querySelector("#card-template").content;
 const cardsList = document.querySelector(".places__list");
 const profileEditOpen = document.querySelector(".profile__edit-button");
 const profileAddButton = document.querySelector(".profile__add-button");
 const popupTypeEdit = document.querySelector(".popup_type_edit");
 const popupTypeNewCard = document.querySelector(".popup_type_new-card");
 const closeButtons = document.querySelectorAll(".popup__close");
-export const popup = document.querySelectorAll(".popup");
-const formElement = document.forms["edit-profile"];
-const nameInput = formElement.elements.name;
-const jobInput = formElement.elements.description;
+const popups = document.querySelectorAll(".popup");
+const editProfile = document.forms["edit-profile"];
+const nameInput = editProfile.elements.name;
+const jobInput = editProfile.elements.description;
 const profileTitle = document.querySelector(".profile__title");
 const profileDescription = document.querySelector(".profile__description");
 const newPlace = document.forms["new-place"];
+const popupTypeImage = document.querySelector(".popup_type_image");
 
 // @todo: Вывести карточки на страницу
 initialCards.forEach(function (element) {
-  cardsList.append(addCard(element, deleteCard, cardLikeButton));
+  cardsList.append(addCard(element, deleteCard, cardLikeButton, showPopup));
 });
 
 //Наложение на каждый попап класса анимации
-popup.forEach(function (element) {
+popups.forEach(function (element) {
   element.classList.add("popup_is-animated");
 });
 
@@ -42,26 +42,35 @@ profileAddButton.addEventListener("click", function () {
   openPopup(popupTypeNewCard);
 });
 
+// Функция с константой попапа карточек с изображениями и привязка к ним данных из
+//темплейта и вызов функции открытии попапа
+function showPopup(item) {
+  popupTypeImage.querySelector(".popup__image").src = item.link;
+  popupTypeImage.querySelector(".popup__image").alt = item.name;
+  popupTypeImage.querySelector(".popup__caption").textContent = item.name;
+  openPopup(popupTypeImage);
+}
+
 // Перебор кнопок закрытия с последующим наложения на них функции, которая убирает класс с элементов
 closeButtons.forEach(function (element) {
   element.addEventListener("click", function () {
-    closePopup(popup);
+    popups.forEach(closePopup);
   });
 });
 
 // Перебор попапов с последующим наложения на них функции, которая убирает класс с элементов,
 //если нажатие вне попапа на оверлей
-popup.forEach(closeOverlay);
+popups.forEach(addCloseOverlayListener);
 
 // Функция, которая сохраняет введенные данные
-function handleFormSubmit(evt) {
+function savesFormData(evt) {
   evt.preventDefault();
   profileTitle.textContent = nameInput.value;
   profileDescription.textContent = jobInput.value;
-  closePopup(popup);
+  closePopup(popupTypeEdit);
 }
 
-formElement.addEventListener("submit", handleFormSubmit);
+editProfile.addEventListener("submit", savesFormData);
 
 //Функция, которая берет введенные данные из формы, подставляет их в значения имени и ссылки
 //создает новую карточку, передает ее в функцию создания карточек и добавляет на страницу
@@ -76,7 +85,7 @@ function createCard(element) {
   const newCardElement = addCard(createCardElement, deleteCard);
   cardsList.prepend(newCardElement);
   element.target.reset();
-  closePopup(popup);
+  closePopup(popupTypeNewCard);
 }
 
 newPlace.addEventListener("submit", createCard);
