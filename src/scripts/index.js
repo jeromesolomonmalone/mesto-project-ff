@@ -63,14 +63,14 @@ closeButtons.forEach(function (element) {
 popups.forEach(addCloseOverlayListener);
 
 // Функция, которая сохраняет введенные данные
-function savesFormData(evt) {
+function saveProfileData(evt) {
   evt.preventDefault();
   profileTitle.textContent = nameInput.value;
   profileDescription.textContent = jobInput.value;
   closePopup(popupTypeEdit);
 }
 
-editProfile.addEventListener("submit", savesFormData);
+editProfile.addEventListener("submit", saveProfileData);
 
 //Функция, которая берет введенные данные из формы, подставляет их в значения имени и ссылки
 //создает новую карточку, передает ее в функцию создания карточек и добавляет на страницу
@@ -82,7 +82,7 @@ function createCard(element) {
     name: placeName.value,
     link: placeLink.value,
   };
-  const newCardElement = addCard(createCardElement, deleteCard);
+  const newCardElement = addCard(createCardElement, deleteCard, cardLikeButton, showPopup);
   cardsList.prepend(newCardElement);
   element.target.reset();
   closePopup(popupTypeNewCard);
