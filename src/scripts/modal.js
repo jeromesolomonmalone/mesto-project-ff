@@ -26,3 +26,12 @@ export function addCloseOverlayListener(element) {
     }
   });
 }
+
+//Функция, в которой если isLoading = true, то на кнопке текст "Сохранение..."
+export function renderLoading(isLoading, element) {
+  if (isLoading) {
+    element.textContent = "Сохранение...";
+  } else {
+    element.textContent = "Сохранить";
+  }
+}
