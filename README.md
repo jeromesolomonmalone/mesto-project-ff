@@ -1,2 +1,3 @@
 # Проектная работа Mesto
-https://github.com/jeromesolomonmalone/mesto-project-ff.git
+https://jeromesolomonmalone.github.io/mesto-project-ff
+

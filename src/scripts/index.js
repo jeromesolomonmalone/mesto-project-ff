@@ -1,12 +1,11 @@
 import "../pages/index.css";
-import { addCard, deleteCard, addCardLike, removeCardLike } from "./card.js";
+import { addCard, addLikeApi, removeLikeApi } from "./card.js";
+import { openPopup, closePopup, addCloseOverlayListener } from "./modal.js";
 import {
-  openPopup,
-  closePopup,
-  addCloseOverlayListener,
-  renderLoading,
-} from "./modal.js";
-import { enableValidation, clearValidation } from "./validation.js";
+  enableValidation,
+  clearValidation,
+  validationConfig,
+} from "./validation.js";
 import {
   getDataProfile,
   getDataCards,
@@ -33,36 +32,48 @@ const jobInput = editProfile.elements.description;
 const profileTitle = document.querySelector(".profile__title");
 const profileDescription = document.querySelector(".profile__description");
 const newPlace = document.forms["new-place"];
+const placeName = newPlace.elements["place-name"];
+const placeLink = newPlace.elements.link;
 const popupTypeImage = document.querySelector(".popup_type_image");
 const profileAvatar = document.querySelector(".profile__image");
-const myID = "2fcc5740c8d4ed7400fccd50";
 const buttonEditProfile = document.querySelector(".button_edit-profile");
 const buttonNewPlace = document.querySelector(".button_new-place");
 const buttonEditAvatar = document.querySelector(".button_edit-avatar");
 const editAvatar = document.forms["edit-avatar"];
 const avatarInput = editAvatar.elements.avatar;
-let cardId = null;
+let myID = null;
 
 // @todo: Вывести карточки на страницу
 //Активация функции добавления карты, через проход массива карт из ссылки
-getDataCards().then((res) => {
-  res.forEach(function (element) {
-    cardsList.append(
-      addCard(
-        element,
-        deleteCard,
-        showPopup,
-        myID,
-        addLike,
-        removeLike,
-        deleteCardApi,
-        cardId,
-        removeCardLike,
-        addCardLike
-      )
-    );
+Promise.all([getDataProfile(), getDataCards()])
+  .then((res) => {
+    const dataProfile = res[0];
+    profileTitle.textContent = dataProfile.name;
+    profileDescription.textContent = dataProfile.about;
+    profileAvatar.style.backgroundImage = "url(" + dataProfile.avatar + ")";
+    nameInput.value = profileTitle.textContent;
+    jobInput.value = profileDescription.textContent;
+    avatarInput.value = dataProfile.avatar;
+    myID = dataProfile._id;
+
+    res[1].forEach(function (element) {
+      cardsList.append(
+        addCard(
+          element,
+          myID,
+          addLikeApi,
+          removeLikeApi,
+          addLike,
+          removeLike,
+          showPopup,
+          deleteCardApi
+        )
+      );
+    });
+  })
+  .catch((err) => {
+    console.log(err);
   });
-});
 
 //Наложение на каждый попап класса анимации
 popups.forEach(function (element) {
@@ -75,8 +86,7 @@ profileEditOpen.addEventListener("click", function () {
   nameInput.value = profileTitle.textContent;
   jobInput.value = profileDescription.textContent;
   openPopup(popupTypeEdit);
-  clearValidation(editProfile, nameInput);
-  clearValidation(editProfile, jobInput);
+  clearValidation(editProfile, validationConfig);
 });
 
 // При нажатии на кнопку добавления карточки вызывается функция открытия попапа
@@ -109,43 +119,23 @@ closeButtons.forEach(function (element) {
 //если нажатие вне попапа на оверлей
 popups.forEach(addCloseOverlayListener);
 
-enableValidation();
-
-//Активация функции данных профиля
-getDataProfile().then((res) => {
-  //Данные шапки равно данные с сервера
-  profileTitle.textContent = res.name;
-  profileDescription.textContent = res.about;
-  profileAvatar.style.backgroundImage = "url(" + res.avatar + ")";
-
-  //Данные инпутов равно данные из шапки
-  nameInput.value = profileTitle.textContent;
-  jobInput.value = profileDescription.textContent;
-  avatarInput.value = res.avatar;
-});
-
 //Функция сохранения данных ИМЕНИ и ПОДРОБНЕЕ
 function saveProfileData(evt) {
   evt.preventDefault();
-
-  //Запуск функции изменения кнопки, когда закружается информация
-  renderLoading(true, buttonEditProfile);
-
-  //Данные шапки равно данные инпутов
-  profileTitle.textContent = nameInput.value;
-  profileDescription.textContent = jobInput.value;
-
-  //Активация функции пересохранения данных имени и подробнее
   saveProfileApi({
     name: nameInput.value,
     about: jobInput.value,
   })
-    //Выключение функции изменения кнопки, когда закружается информация
+    .then((res) => {
+      renderLoading(true, buttonEditProfile);
+      profileTitle.textContent = nameInput.value;
+      profileDescription.textContent = jobInput.value;
+    })
+    .catch((err) => console.log(`Ошибка.....: ${err}`))
     .finally(() => {
       renderLoading(false, buttonEditProfile);
+      closePopup(popupTypeEdit);
     });
-
-  closePopup(popupTypeEdit);
 }
 
 editProfile.addEventListener("submit", saveProfileData);
@@ -153,69 +143,62 @@ editProfile.addEventListener("submit", saveProfileData);
 //Функция сохранения данных КАРТОЧКИ
 function createCard(evt) {
   evt.preventDefault();
-
-  //Запуск функции изменения кнопки, когда закружается информация
-  renderLoading(true, buttonNewPlace);
-  const placeName = newPlace.elements["place-name"];
-  const placeLink = newPlace.elements.link;
-  //Активация функции сохранения карточки
   addNewApiCard({
     name: placeName.value,
     link: placeLink.value,
   })
-    //Если все прошло успешно, то карточка добавляется вначало списка карточек
-    .then((data) => {
+    .then((res) => {
+      renderLoading(true, buttonNewPlace);
       cardsList.prepend(
         addCard(
-          data,
-          deleteCard,
-          showPopup,
+          res,
           myID,
+          addLikeApi,
+          removeLikeApi,
           addLike,
           removeLike,
-          deleteCardApi,
-          cardId,
-          removeCardLike,
-          addCardLike
+          showPopup,
+          deleteCardApi
         )
       );
     })
-
-    //Выключение функции изменения кнопки, когда закружается информация
+    .catch((err) => console.log(`Ошибка.....: ${err}`))
     .finally(() => {
       renderLoading(false, buttonNewPlace);
+      evt.target.reset();
+      clearValidation(newPlace, validationConfig);
+      closePopup(popupTypeNewCard);
     });
-
-  evt.target.reset();
-  clearValidation(newPlace, placeName);
-  clearValidation(newPlace, placeLink);
-  closePopup(popupTypeNewCard);
 }
 
 newPlace.addEventListener("submit", createCard);
 
 //Функция сохранения ссылки АВАТАРА
-function saveAvatarData(evt) {
+function editAvatarApi(evt) {
   evt.preventDefault();
-
-  //Запуск функции изменения кнопки, когда закружается информация
-  renderLoading(true, buttonEditAvatar);
-
-  //Данные шапки равно данные инпутов
-  profileAvatar.style.backgroundImage = "url(" + avatarInput.value + ")";
-
-  //Активация функции пересохранения ссылки аватара
   saveAvatarApi({
     avatar: avatarInput.value,
   })
-    //Выключение функции изменения кнопки, когда закружается информация
+    .then(() => {
+      renderLoading(true, buttonEditAvatar);
+      profileAvatar.style.backgroundImage = "url(" + avatarInput.value + ")";
+    })
+    .catch((err) => console.log(`Ошибка.....: ${err}`))
     .finally(() => {
       renderLoading(false, buttonEditAvatar);
+      closePopup(popupTypeEditAvatar);
     });
-
-  //Закрытие попапа
-  closePopup(popupTypeEditAvatar);
 }
 
-//Листенер на форму сохранения ссылки АВАТАРА
-editAvatar.addEventListener("submit", saveAvatarData);
+editAvatar.addEventListener("submit", editAvatarApi);
+
+//Функция, в которой если isLoading = true, то на кнопке текст "Сохранение..."
+function renderLoading(isLoading, element) {
+  if (isLoading) {
+    element.textContent = "Сохранение...";
+  } else {
+    element.textContent = "Сохранить";
+  }
+}
+
+enableValidation(validationConfig);
