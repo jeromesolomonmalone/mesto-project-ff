@@ -35,7 +35,7 @@ export const saveProfileApi = (data) => {
     method: "PATCH",
     headers: config.headers,
     body: JSON.stringify(data),
-  });
+  }).then(handleResponse);
 };
 
 //Функция-константа с передачей на сервер данных карточки
@@ -77,5 +77,5 @@ export const saveAvatarApi = (data) => {
     method: "PATCH",
     headers: config.headers,
     body: JSON.stringify(data),
-  });
+  }).then(handleResponse);
 };

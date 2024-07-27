@@ -1,11 +1,7 @@
 import "../pages/index.css";
 import { addCard, addLikeApi, removeLikeApi } from "./card.js";
 import { openPopup, closePopup, addCloseOverlayListener } from "./modal.js";
-import {
-  enableValidation,
-  clearValidation,
-  validationConfig,
-} from "./validation.js";
+import { enableValidation, clearValidation } from "./validation.js";
 import {
   getDataProfile,
   getDataCards,
@@ -42,6 +38,13 @@ const buttonEditAvatar = document.querySelector(".button_edit-avatar");
 const editAvatar = document.forms["edit-avatar"];
 const avatarInput = editAvatar.elements.avatar;
 let myID = null;
+const validationConfig = {formSelector: ".popup__form", 
+  inputSelector: ".popup__input", 
+  submitButtonSelector: ".popup__button", 
+  inactiveButtonClass: "popup__button_disabled", 
+  inputErrorClass: "popup__input_type_error", 
+  errorClass: "popup__error_visible", 
+}; 
 
 // @todo: Вывести карточки на страницу
 //Активация функции добавления карты, через проход массива карт из ссылки
@@ -86,7 +89,8 @@ profileEditOpen.addEventListener("click", function () {
   nameInput.value = profileTitle.textContent;
   jobInput.value = profileDescription.textContent;
   openPopup(popupTypeEdit);
-  clearValidation(editProfile, validationConfig);
+  clearValidation(editProfile,nameInput, validationConfig);
+  clearValidation(editProfile,jobInput, validationConfig);
 });
 
 // При нажатии на кнопку добавления карточки вызывается функция открытия попапа
@@ -122,19 +126,19 @@ popups.forEach(addCloseOverlayListener);
 //Функция сохранения данных ИМЕНИ и ПОДРОБНЕЕ
 function saveProfileData(evt) {
   evt.preventDefault();
+  renderLoading(true, buttonEditProfile);
   saveProfileApi({
     name: nameInput.value,
     about: jobInput.value,
   })
     .then((res) => {
-      renderLoading(true, buttonEditProfile);
-      profileTitle.textContent = nameInput.value;
-      profileDescription.textContent = jobInput.value;
+      profileTitle.textContent = res.name;
+      profileDescription.textContent = res.about;
+      closePopup(popupTypeEdit);
     })
     .catch((err) => console.log(`Ошибка.....: ${err}`))
     .finally(() => {
       renderLoading(false, buttonEditProfile);
-      closePopup(popupTypeEdit);
     });
 }
 
@@ -143,12 +147,12 @@ editProfile.addEventListener("submit", saveProfileData);
 //Функция сохранения данных КАРТОЧКИ
 function createCard(evt) {
   evt.preventDefault();
+  renderLoading(true, buttonNewPlace);
   addNewApiCard({
     name: placeName.value,
     link: placeLink.value,
   })
     .then((res) => {
-      renderLoading(true, buttonNewPlace);
       cardsList.prepend(
         addCard(
           res,
@@ -161,13 +165,14 @@ function createCard(evt) {
           deleteCardApi
         )
       );
+      closePopup(popupTypeNewCard);
     })
     .catch((err) => console.log(`Ошибка.....: ${err}`))
     .finally(() => {
       renderLoading(false, buttonNewPlace);
       evt.target.reset();
-      clearValidation(newPlace, validationConfig);
-      closePopup(popupTypeNewCard);
+      clearValidation(newPlace, placeName,validationConfig);
+      clearValidation(newPlace, placeLink,validationConfig);
     });
 }
 
@@ -176,17 +181,17 @@ newPlace.addEventListener("submit", createCard);
 //Функция сохранения ссылки АВАТАРА
 function editAvatarApi(evt) {
   evt.preventDefault();
+  renderLoading(true, buttonEditAvatar);
   saveAvatarApi({
     avatar: avatarInput.value,
   })
-    .then(() => {
-      renderLoading(true, buttonEditAvatar);
-      profileAvatar.style.backgroundImage = "url(" + avatarInput.value + ")";
+    .then((res) => {
+      profileAvatar.style.backgroundImage = "url(" + res.avatar + ")";
+      closePopup(popupTypeEditAvatar);
     })
     .catch((err) => console.log(`Ошибка.....: ${err}`))
     .finally(() => {
       renderLoading(false, buttonEditAvatar);
-      closePopup(popupTypeEditAvatar);
     });
 }
 

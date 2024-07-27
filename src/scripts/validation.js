@@ -1,18 +1,8 @@
-export const validationConfig = {
-  formSelector: ".popup__form",
-  inputSelector: ".popup__input",
-  submitButtonSelector: ".popup__button",
-  inactiveButtonClass: "popup__button_disabled",
-  inputErrorClass: "popup__input_type_error",
-  errorClass: "popup__error_visible",
-};
-
 const showInputError = (
   formElement,
   inputElement,
   errorMessage,
-  inputErrorClass,
-  errorClass
+  { inputErrorClass, errorClass }
 ) => {
   const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
   inputElement.classList.add(inputErrorClass);
@@ -23,8 +13,7 @@ const showInputError = (
 const hideInputError = (
   formElement,
   inputElement,
-  inputErrorClass,
-  errorClass
+  { inputErrorClass, errorClass }
 ) => {
   const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
   inputElement.classList.remove(inputErrorClass);
@@ -44,48 +33,68 @@ const checkInputValidity = (
     inputElement.setCustomValidity("");
   }
   if (!inputElement.validity.valid) {
-    showInputError(
-      formElement,
-      inputElement,
-      inputElement.validationMessage,
+    showInputError(formElement, inputElement, inputElement.validationMessage, {
       inputErrorClass,
-      errorClass
-    );
+      errorClass,
+    });
   } else {
-    hideInputError(formElement, inputElement, inputErrorClass, errorClass);
+    hideInputError(formElement, inputElement, { inputErrorClass, errorClass });
   }
 };
 
 const setEventListeners = (
   formElement,
-  { inputSelector, submitButtonSelector }
+  {
+    inputSelector,
+    submitButtonSelector,
+    inactiveButtonClass,
+    inputErrorClass,
+    errorClass,
+  }
 ) => {
   const inputList = Array.from(formElement.querySelectorAll(inputSelector));
   const buttonElement = formElement.querySelector(submitButtonSelector);
-  toggleButtonState(inputList, buttonElement, validationConfig);
+  toggleButtonState(inputList, buttonElement, { inactiveButtonClass });
 
   inputList.forEach((inputElement) => {
     inputElement.addEventListener("input", function () {
-      checkInputValidity(formElement, inputElement, validationConfig);
-      toggleButtonState(inputList, buttonElement, validationConfig);
+      checkInputValidity(formElement, inputElement, {
+        inputErrorClass,
+        errorClass,
+      });
+      toggleButtonState(inputList, buttonElement, { inactiveButtonClass });
     });
   });
 };
 
-export const enableValidation = ({ formSelector }) => {
-  const formList = Array.from(document.querySelectorAll(formSelector));
-  formList.forEach((formElement) => {
+export const enableValidation = ({
+  formSelector,
+  inputSelector,
+  submitButtonSelector,
+  inactiveButtonClass,
+  inputErrorClass,
+  errorClass,
+}) => {
+  const form = Array.from(document.querySelectorAll(formSelector));
+  form.forEach((formElement) => {
     formElement.addEventListener("submit", function (evt) {
       evt.preventDefault();
     });
 
-    setEventListeners(formElement, validationConfig);
+    setEventListeners(formElement, {
+      formSelector,
+      inputSelector,
+      submitButtonSelector,
+      inactiveButtonClass,
+      inputErrorClass,
+      errorClass,
+    });
   });
 };
 
 const hasInvalidInput = (inputList) => {
-  return inputList.some((inputElement) => {
-    return !inputElement.validity.valid;
+  return inputList.some((input) => {
+    return !input.validity.valid;
   });
 };
 
@@ -104,22 +113,14 @@ const toggleButtonState = (
 };
 
 export const clearValidation = (
-  form,
+  formElement,
+  inputElement,
   {
-    inputSelector,
+    // submitButtonSelector,inactiveButtonClass,
     inputErrorClass,
     errorClass,
-    inactiveButtonClass,
-    submitButtonSelector,
   }
 ) => {
-  const inputError = form.querySelectorAll(inputSelector);
-  inputError.forEach((evt) => {
-    evt.classList.remove(inputErrorClass);
-    evt.setCustomValidity("");
-    const errorElement = form.querySelector(`.${evt.id}-error`);
-    errorElement.classList.remove(errorClass);
-    errorElement.textContent = "";
-  });
-  form.querySelector(submitButtonSelector).classList.add(inactiveButtonClass);
+  hideInputError(formElement, inputElement, inputErrorClass, errorClass);
+  // toggleButtonState(formElement, submitButtonSelector, inactiveButtonClass)
 };
