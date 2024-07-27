@@ -38,13 +38,14 @@ const buttonEditAvatar = document.querySelector(".button_edit-avatar");
 const editAvatar = document.forms["edit-avatar"];
 const avatarInput = editAvatar.elements.avatar;
 let myID = null;
-const validationConfig = {formSelector: ".popup__form", 
-  inputSelector: ".popup__input", 
-  submitButtonSelector: ".popup__button", 
-  inactiveButtonClass: "popup__button_disabled", 
-  inputErrorClass: "popup__input_type_error", 
-  errorClass: "popup__error_visible", 
-}; 
+const validationConfig = {
+  formSelector: ".popup__form",
+  inputSelector: ".popup__input",
+  submitButtonSelector: ".popup__button",
+  inactiveButtonClass: "popup__button_disabled",
+  inputErrorClass: "popup__input_type_error",
+  errorClass: "popup__error_visible",
+};
 
 // @todo: Вывести карточки на страницу
 //Активация функции добавления карты, через проход массива карт из ссылки
@@ -89,8 +90,8 @@ profileEditOpen.addEventListener("click", function () {
   nameInput.value = profileTitle.textContent;
   jobInput.value = profileDescription.textContent;
   openPopup(popupTypeEdit);
-  clearValidation(editProfile,nameInput, validationConfig);
-  clearValidation(editProfile,jobInput, validationConfig);
+  clearValidation(editProfile, nameInput, validationConfig);
+  clearValidation(editProfile, jobInput, validationConfig);
 });
 
 // При нажатии на кнопку добавления карточки вызывается функция открытия попапа
@@ -171,8 +172,8 @@ function createCard(evt) {
     .finally(() => {
       renderLoading(false, buttonNewPlace);
       evt.target.reset();
-      clearValidation(newPlace, placeName,validationConfig);
-      clearValidation(newPlace, placeLink,validationConfig);
+      clearValidation(newPlace, placeName, validationConfig);
+      clearValidation(newPlace, placeLink, validationConfig);
     });
 }
 
